@@ -1,0 +1,10 @@
+[project]
+name = "severe-weather-risk-analytics-pipeline"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "dbt-core>=1.12.2",
+    "dbt-snowflake>=1.12.0",
+]
