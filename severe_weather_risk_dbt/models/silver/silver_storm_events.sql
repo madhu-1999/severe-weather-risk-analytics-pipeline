@@ -18,7 +18,29 @@ SELECT
     '1900-01-01' :: timestamp_ntz AS max_loaded_at
 {% endif %})
 SELECT
-    *
+    episode_id,
+    event_id,
+    state,
+    state_abbr,
+    state_fips,
+    event_type,
+    cz_type,
+    cz_fips,
+    cz_name,
+    begin_datetime_local_ts,
+    begin_datetime_utc_ts,
+    end_datetime_local_ts,
+    end_datetime_utc_ts,
+    cz_timezone,
+    injuries_direct,
+    injuries_indirect,
+    deaths_direct,
+    deaths_indirect,
+    damage_property,
+    damage_crops,
+    _file_name,
+    _loaded_at,
+    _last_modified
 FROM
     {{ ref('intermediate_staging_table') }}
     CROSS JOIN max_loaded
