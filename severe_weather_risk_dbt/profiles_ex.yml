@@ -1,0 +1,13 @@
+severe_weather_risk_dbt:
+  outputs:
+    dev:
+      account: <account-identifier>
+      database: final_proj_db
+      private_key_path: /path/to/private_key
+      role: project_member
+      schema: raw_data
+      threads: 4
+      type: snowflake
+      user: <username>
+      warehouse: final_project_wh
+  target: dev

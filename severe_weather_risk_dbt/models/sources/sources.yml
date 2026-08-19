@@ -1,0 +1,8 @@
+version: 2
+
+sources:
+  - name: raw_data
+    database: final_proj_db
+    schema: raw_data
+    tables:
+      - name: raw_storm_events
