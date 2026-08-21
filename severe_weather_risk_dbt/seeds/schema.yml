@@ -1,0 +1,25 @@
+version: 2
+
+seeds:
+  - name: us_state_abbr
+    columns:
+      - name: state
+        tests:
+          - not_null
+          - unique
+      - name: abbreviation
+        tests:
+          - not_null
+          - unique
+
+  - name: event_type_designator_mapping
+    columns:
+      - name: event_name
+        tests:
+          - not_null
+          - unique
+      - name: designator
+        tests:
+          - not_null
+          - accepted_values:
+              values: ["C", "Z", "M"]

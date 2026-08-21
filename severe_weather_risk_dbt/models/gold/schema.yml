@@ -1,0 +1,122 @@
+version: 2
+
+models:
+  - name: dim_date
+    columns:
+      - name: date_key
+        tests:
+          - not_null
+          - unique
+
+      - name: full_date
+        tests:
+          - not_null
+
+      - name: month
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: 1
+              max_value: 12
+              inclusive: true
+
+      - name: day
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: 1
+              max_value: 31
+              inclusive: true
+
+      - name: quarter
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: 1
+              max_value: 4
+              inclusive: true
+
+  - name: dim_event_type
+    columns:
+      - name: event_type_sk
+        tests:
+          - not_null
+          - unique
+
+      - name: event_type
+        tests:
+          - not_null
+          - unique # one surrogate row per distinct event_type value
+
+  - name: dim_location
+    columns:
+      - name: location_sk
+        tests:
+          - not_null
+          - unique
+
+      - name: state
+        tests:
+          - not_null
+
+      - name: cz_type
+        tests:
+          - not_null
+          - accepted_values:
+              values: ["C", "Z", "M"]
+
+  - name: fct_storm_events
+    columns:
+      - name: episode_id
+        tests:
+          - not_null
+
+      - name: event_id
+        tests:
+          - not_null
+
+      - name: location_sk
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_location')
+              field: location_sk
+
+      - name: event_type_sk
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_event_type')
+              field: event_type_sk
+
+      - name: begin_date_key
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_date')
+              field: date_key
+
+      - name: end_date_key
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_date')
+              field: date_key
+
+      - name: total_injuries
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: 0
+
+      - name: total_deaths
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: 0
+
+      - name: total_financial_impact
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: 0
+
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - episode_id
+            - event_id
