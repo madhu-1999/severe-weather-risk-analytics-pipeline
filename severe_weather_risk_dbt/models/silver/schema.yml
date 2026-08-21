@@ -1,0 +1,135 @@
+version: 2
+
+models:
+  - name: intermediate_staging_table
+    description: >
+      All parsed rows from raw_storm_events, including invalid ones (flagged via
+      failure_reason). Because this table intentionally holds both valid and
+      invalid records, most tests here are scoped to failure_reason IS NULL so
+      they only assert against rows expected to be clean.
+    columns:
+      - name: event_id
+        description: NWS primary key for an individual storm event.
+        tests:
+          - not_null:
+              config:
+                where: "failure_reason is null"
+
+      - name: episode_id
+        tests:
+          - not_null:
+              config:
+                where: "failure_reason is null"
+
+      - name: cz_type
+        tests:
+          - accepted_values:
+              values: ["C", "Z", "M"]
+              config:
+                where: "failure_reason is null"
+
+      - name: failure_reason
+        description: Null for valid rows, populated with a reason string for quarantine candidates.
+
+      - name: _loaded_at
+        tests:
+          - not_null # critical: incremental watermark depends on this never being null
+
+    tests:
+      # Snowflake MERGE fails outright if the source has 2+ rows matching the same
+      # unique_key in a single run.
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - episode_id
+            - event_id
+          config:
+            where: "failure_reason is null"
+
+  - name: silver_storm_events
+    description: Valid storm events only (failure_reason IS NULL upstream).
+    columns:
+      - name: episode_id
+        tests:
+          - not_null
+
+      - name: event_id
+        tests:
+          - not_null
+
+      - name: state_abbr
+        tests:
+          - not_null
+
+      - name: cz_type
+        tests:
+          - not_null
+          - accepted_values:
+              values: ["C", "Z", "M"]
+
+      - name: begin_datetime_local_ts
+        tests:
+          - not_null
+
+      - name: end_datetime_local_ts
+        tests:
+          - not_null
+
+      - name: damage_property
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: 0
+
+      - name: damage_crops
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: 0
+
+      - name: injuries_direct
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: 0
+
+      - name: injuries_indirect
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: 0
+
+      - name: deaths_direct
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: 0
+
+      - name: deaths_indirect
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: 0
+
+      - name: _loaded_at
+        tests:
+          - not_null
+
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - episode_id
+            - event_id
+
+  - name: silver_storm_events_quarantine
+    description: Invalid storm events routed here for review/remediation.
+    columns:
+      - name: failure_reason
+        tests:
+          - not_null
+          - accepted_values:
+              values:
+                - "Invalid episode_id"
+                - "Invalid event_id"
+                - "Invalid state"
+                - "Invalid event_type to cz_type mapping"
+                - "Invalid cz_type"
+                - "Invalid begin_datetime"
+                - "Invalid end_datetime"
+
+      - name: _loaded_at
+        tests:
+          - not_null
