@@ -38,6 +38,7 @@ SELECT
     deaths_indirect,
     damage_property,
     damage_crops,
+    failure_reason,
     _file_name,
     _loaded_at,
     _last_modified
